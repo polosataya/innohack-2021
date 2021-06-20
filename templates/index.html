@@ -19,10 +19,24 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
-        $.fn.multiselect.Constructor.prototype.defaults.nonSelectedText = "Ничего не выбрано";
-        $.fn.multiselect.Constructor.prototype.defaults.nSelectedText = "выбрано";
-        $.fn.multiselect.Constructor.prototype.defaults.allSelectedText = "Выбрано всё";
-        $('#ms1').multiselect();
+
+      let f = '#q';
+      var hash = location.hash.replace(/^#/, '');
+      if (hash) {
+          $('.nav-item a[href="#' + hash + '"]').tab('show');
+          if (hash == 'candidates') {
+            f = '#c';
+          }
+      }
+
+     setTimeout(function(){$(f).prop({ 'selectionStart': 0, 'selectionEnd': 10000 }); $(f).focus(); }, 100);
+
+      $('.nav-item a').click(function (e) {
+          $(this).tab('show');
+          e.preventDefault();
+          history.pushState({}, '', this.href);
+      });
+
     });
 </script>
 
@@ -142,23 +156,21 @@ body {
 
     <div class="container-fluid">
       <div class="row">
-        <nav class="col-md-2 sidebar">
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
           <div class="sidebar-sticky">
             <ul class="nav flex-column">
 
               <li class="nav-item">
-                <a class="nav-link active" id="user-tab" data-toggle="tab" href="#user" role="tab" aria-controls="home" aria-selected="true">
+                <a class="nav-link active" id="vacancies-tab" href="#vacancies" role="tab" aria-controls="home" aria-selected="true">
                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
-                  <span data-feather="home"></span>
-                  Вакансии <span class="sr-only">(current)</span>
+                  <span data-feather="home"></span>Вакансии <span class="sr-only">(current)</span>
                 </a>
               </li>
 
               <li class="nav-item">
-                <a class="nav-link" id="admin-tab" data-toggle="tab" href="#admin" role="tab" aria-controls="admin" aria-selected="false">
+                <a class="nav-link" id="candidates-tab" href="#candidates" role="tab" aria-controls="admin" aria-selected="false">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                  <span data-feather="file"></span>
-                  Кандидаты
+                  <span data-feather="file"></span>Кандидаты
                 </a>
               </li>
 
@@ -168,37 +180,41 @@ body {
 
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
 
+        <div class="tab-content pt-3" id="mytabcontent">
 
-        <div class="tab-content pt-3" id="myTabContent">
-
-            <div class="tab-pane fade show active" id="user" role="tabpanel" aria-labelledby="user-tab">
+            <div class="tab-pane fade show active" id="vacancies" role="tabpanel" aria-labelledby="user-tab">
 
                 <div class="container-fluid">
-
-
 
                     <h1>Вакансии</h1>
                     <hr>
 
-<form>
+                    <form>
+
                     <h5>Ключевые навыки:</h5>
 
                     <div class="row">
                         <div class="col-lg-7">
-                        <select class="form-select" id="ms1" multiple="multiple" name="ab">
+                        <select class="form-select" id="ms1" multiple="multiple" name="k">
                             {% for val in ab %}
-                            <option value="{{ loop.index0 }}">{{ val }}</option>
+                            <option value="{{ loop.index0 }}" {% if loop.index0 in k %} selected {% endif %}>{{ val }}</option>
                             {% endfor %}
                         </select>
                         </div>
                     </div>
+                    <script>
+                            $.fn.multiselect.Constructor.prototype.defaults.nonSelectedText = "Ничего не выбрано";
+                            $.fn.multiselect.Constructor.prototype.defaults.nSelectedText = "выбрано";
+                            $.fn.multiselect.Constructor.prototype.defaults.allSelectedText = "Выбрано всё";
+                            $('#ms1').multiselect();
+                    </script>
 
                     <p/>
 
                     <div class="row">
-                        <div class="col-lg-7">
+                        <div class="col-lg-5">
                             <div class="input-group mb-3">
-                              <input type="text" class="form-control" placeholder="Строка для поиска" aria-label="поиск" autofocus name="q">
+                              <input id="q" type="text" class="form-control" placeholder="Строка для поиска" aria-label="поиск" autofocus name="q" value="{{ q }}">
                               <div class="input-group-append">
                                 <input type="submit" class="btn btn-primary" value="Искать">
                               </div>
@@ -206,54 +222,80 @@ body {
                         </div>
                     </div>
 
+                    </form>
 
-</form>
-
-                    {% if q %}
-                    <p>Вы искали: {{q}}</p>
-                    {% else %}
-                    Ничего не найдено
-                    {% endif %}
-
-
-                    {% if data.rows %}
+                    {% if tables.vt.data.rows %}
                     <table class="table table-hover">
                     <thead>
                     <tr>
-                    {% for h in data.headers %}
+                    {% for h in tables.vt.data.headers %}
                       <th scope="col">{{h}}</th>
                     {% endfor %}
                     <tr>
                     </thead>
 
                     <tbody>
-                    {% for row in data.rows %}
+                    {% for row in tables.vt.data.rows %}
                       <tr>
                       {% for value in row %}
-                        <td>{{value}}</td>
+                        <td>{{value|safe}}</td>
                       {% endfor %}
                       </tr>
                     {% endfor %}
                     </tbody>
                     </table>
+
+                    {% else %}
+                    Ничего не найдено
                     {% endif %}
 
-
-<!--
-{% for table in tables %}
-  {{titles[loop.index]}}
-  {{ table|safe }}
-{% endfor %}
--->
 
                 </div>
             </div>
 
-            <div class="tab-pane fade" id="admin" role="tabpanel" aria-labelledby="admin-tab">
+            <div class="tab-pane fade" id="candidates" role="tabpanel" aria-labelledby="candidates-tab">
                 <div class="container-fluid">
                     <h1>Кандидаты</h1>
                     <hr>
-                    Этот раздел в разработке
+
+                    <form>
+                    <div class="row">
+                        <div class="col-lg-5">
+                            <div class="input-group mb-3">
+                              <input id="q" type="text" class="form-control" placeholder="Строка для поиска" aria-label="поиск" name="q" value="{{ q }}">
+                              <div class="input-group-append">
+                                <input type="submit" class="btn btn-primary" value="Искать">
+                              </div>
+                            </div>
+                        </div>
+                    </div>
+                    </form>
+
+                    {% if tables.ct.data.rows %}
+                    <table class="table table-hover">
+                    <thead>
+                    <tr>
+                    {% for h in tables.ct.data.headers %}
+                      <th scope="col">{{h}}</th>
+                    {% endfor %}
+                    <tr>
+                    </thead>
+
+                    <tbody>
+                    {% for row in tables.ct.data.rows %}
+                      <tr>
+                      {% for value in row %}
+                        <td>{{value|safe}}</td>
+                      {% endfor %}
+                      </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+
+                    {% else %}
+                    Ничего не найдено
+                    {% endif %}
+
                 </div>
             </div>
 
